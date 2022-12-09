@@ -6,7 +6,7 @@ import os
 import re
 
 BIOM_FILE_PATH = '/Users/konstantinkravchenko/Desktop/Project_biom/biom/'
-TARGET = "s__bacterium_endosymbiont_of_Onthophagus_Taurus"
+TARGET = "s__bacterium_Ellin7504"
 Q_THREADS = 4
 
 
