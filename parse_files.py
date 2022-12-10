@@ -10,7 +10,7 @@ TARGET = "s__bacterium_Ellin7504"
 Q_THREADS = 4
 
 
-start_time = time.time()
+# start_time = time.time()
 
 Sum_by_taxon = 0
 Quantity_by_taxon = 0
@@ -34,10 +34,9 @@ if __name__ == "__main__":
     #получаем все файлы в директории
 
     tree = os.walk(BIOM_FILE_PATH)
-    # print('\n'*4,tree)    
+
 
     for i in tree:
-        # print('\n'*4,i)
         biom_arr = [*i]
 
     Number_of_Files = len(biom_arr[2])
@@ -62,7 +61,10 @@ if __name__ == "__main__":
     for thread in threads:
         thread.join()
 
-    print("Done!")
-    print("\n"*4, "--- %f seconds ---" % (time.time() - start_time))
+    print("\n\nDone!\n")
+
+
 
     print('Taxon', TARGET ,'Sum_by_taxon = ', Sum_by_taxon, 'Quantity_by_taxon = ', Quantity_by_taxon)
+
+    print("\n\n")
