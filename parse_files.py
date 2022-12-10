@@ -5,7 +5,7 @@ import time
 import os
 import re
 
-BIOM_FILE_PATH = '/Users/konstantinkravchenko/Desktop/Project_biom/biom/'
+# BIOM_FILE_PATH = '/Users/konstantinkravchenko/Desktop/Project_biom/biom/'
 TARGET = "s__bacterium_Ellin7504"
 Q_THREADS = 4
 
@@ -17,7 +17,7 @@ Quantity_by_taxon = 0
 
 def parse_biom(arr):
     for i in arr:
-        table = load_table(BIOM_FILE_PATH + i)
+        table = load_table( i )
         f_filter = lambda values, id_, md: TARGET in md['taxonomy']
         env = table.filter(f_filter, axis='observation', inplace=False)
         with lock:
@@ -33,13 +33,19 @@ if __name__ == "__main__":
 
     #получаем все файлы в директории
 
-    tree = os.walk(BIOM_FILE_PATH)
+    dirname = os.path.dirname(__file__)
+
+    tree = os.walk(dirname + "/biom/")
 
 
     for i in tree:
         biom_arr = [*i]
 
     Number_of_Files = len(biom_arr[2])
+
+    for i in range(Number_of_Files):
+        biom_arr[2][i] = dirname + "/biom/" + biom_arr[2][i]
+
 
     L_Q_Threads = Number_of_Files//Q_THREADS
 
