@@ -6,25 +6,25 @@ import os
 import re
 
 # Определим таксон по умолчанию
-
 TARGET = "s__bacterium_Ellin7504"
 
 # Количество потоков по умолчанию
 Q_THREADS = 4
 
 # Инициализируем количество упоминаний заданного таксона и суммарную плотность
-Sum_by_taxon = 0
+
 Quantity_by_taxon = 0
+Sum_by_taxon = 0
 
 # Эта функция выгружает данные из файла biom в обьект класса biom.  
 # Затем методами класса biom проводит фильтрацию по заданному таксону и 
 # определение Sum_by_taxon и Quantity_by_taxon
 # Функция запускается в отдельных потоках
  
-def parse_biom(arr):
+def parse_biom(arr, taxon):
     for i in arr:
         table = load_table( i )
-        f_filter = lambda values, id_, md: TARGET in md['taxonomy']
+        f_filter = lambda values, id_, md: taxon in md['taxonomy']
         env = table.filter(f_filter, axis='observation', inplace=False)
   
 # При обращении функции к общим переменным происходит блокировка, 
@@ -41,12 +41,18 @@ def parse_biom(arr):
 
 if __name__ == "__main__":
 
-    #получаем имена всех файлов в папке ./biom/
+# Ввод имени таксона. Если имя не вводится то используется таксон по умолчанию
 
+    taxon = input("Введите имя таксона или нажмите Enter (Имя по умолчанию %s )\n\n" % TARGET)
+
+    
+    if taxon == "" : taxon = TARGET
+
+#получаем имена всех файлов в папке ./biom
     dirname = os.path.dirname(__file__)
-
     tree = os.walk(dirname + "/biom/")
 
+# Формируем массив имен файлов для передачи в функцию обработки
 
     for i in tree:
         biom_arr = [*i]
@@ -57,9 +63,9 @@ if __name__ == "__main__":
         biom_arr[2][i] = dirname + "/biom/" + biom_arr[2][i]
 
 
-    L_Q_Threads = Number_of_Files//Q_THREADS
+#Разделим исходный массив на части для каждого потока
 
-    #Разделим исходный массив на части для каждого потока
+    L_Q_Threads = Number_of_Files//Q_THREADS
     
     biom_arr_by_threads = [[]*Q_THREADS for i in range(Q_THREADS)]
 
@@ -68,10 +74,13 @@ if __name__ == "__main__":
 
     biom_arr_by_threads[Q_THREADS - 1] = biom_arr[2][L_Q_Threads*(Q_THREADS-1) : Number_of_Files]
         
+# Запускаем метод блокировки для избежания конфликта между потоками при обращении к одним переменным
     lock = threading.Lock()
 
-    threads = [threading.Thread(target = parse_biom, args = (biom_arr_by_threads[i],)) for i in range(Q_THREADS)]
+# Формируем массив потоков
+    threads = [threading.Thread(target = parse_biom, args = (biom_arr_by_threads[i],taxon,)) for i in range(Q_THREADS)]
 
+# Старт потоков
     for thread in threads:
         thread.start()
     
@@ -83,6 +92,6 @@ if __name__ == "__main__":
 
     print("\n\nDone!\n")
 
-    print('Taxon', TARGET ,'Sum_by_taxon = ', Sum_by_taxon, 'Quantity_by_taxon = ', Quantity_by_taxon)
+    print('Taxon ', taxon ,'\nSum_by_taxon = ', Sum_by_taxon, '\nQuantity_by_taxon = ', Quantity_by_taxon)
 
     print("\n\n")
