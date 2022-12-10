@@ -5,21 +5,31 @@ import time
 import os
 import re
 
-# BIOM_FILE_PATH = '/Users/konstantinkravchenko/Desktop/Project_biom/biom/'
+# Определим таксон по умолчанию
+
 TARGET = "s__bacterium_Ellin7504"
+
+# Количество потоков по умолчанию
 Q_THREADS = 4
 
-
-# start_time = time.time()
-
+# Инициализируем количество упоминаний заданного таксона и суммарную плотность
 Sum_by_taxon = 0
 Quantity_by_taxon = 0
 
+# Эта функция выгружает данные из файла biom в обьект класса biom.  
+# Затем методами класса biom проводит фильтрацию по заданному таксону и 
+# определение Sum_by_taxon и Quantity_by_taxon
+# Функция запускается в отдельных потоках
+ 
 def parse_biom(arr):
     for i in arr:
         table = load_table( i )
         f_filter = lambda values, id_, md: TARGET in md['taxonomy']
         env = table.filter(f_filter, axis='observation', inplace=False)
+  
+# При обращении функции к общим переменным происходит блокировка, 
+# чтобы не возникло конфликта между потоками
+
         with lock:
             global Sum_by_taxon , Quantity_by_taxon
             Sum_by_taxon += env.sum(axis='whole')
@@ -31,7 +41,7 @@ def parse_biom(arr):
 
 if __name__ == "__main__":
 
-    #получаем все файлы в директории
+    #получаем имена всех файлов в папке ./biom/
 
     dirname = os.path.dirname(__file__)
 
@@ -49,7 +59,8 @@ if __name__ == "__main__":
 
     L_Q_Threads = Number_of_Files//Q_THREADS
 
-        #разделим исходный массив на 4 подмассива, чтобы запустить 4 потока для каждого. 4 потому что TOTAL_BIOM делится на 4
+    #Разделим исходный массив на части для каждого потока
+    
     biom_arr_by_threads = [[]*Q_THREADS for i in range(Q_THREADS)]
 
     for i in range(Q_THREADS-1):
@@ -67,9 +78,10 @@ if __name__ == "__main__":
     for thread in threads:
         thread.join()
 
+
+# Вывод результата обработки
+
     print("\n\nDone!\n")
-
-
 
     print('Taxon', TARGET ,'Sum_by_taxon = ', Sum_by_taxon, 'Quantity_by_taxon = ', Quantity_by_taxon)
 
