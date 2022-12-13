@@ -13,18 +13,18 @@ TARGET = "s__"
 Q_THREADS = 4
 
 # Инициализируем количество упоминаний заданного таксона и суммарную плотность и 
-# составим словарь всех упоминаний имени этого таксона во всех файлах и его плотности
+# составим словарь-счетчик всех упоминаний различных  таксонов во всех файлах и их плотности
 
-Quantity_by_taxon = 0
-Sum_by_taxon = 0
+# Quantity_by_taxon = 0
+# Sum_by_taxon = 0
 Counter_by_taxon = Counter()
 
 # Эта функция выгружает данные из файла biom в обьект класса biom. 
 # Аргументы:
 # 1. Массив полных имен файлов 
 # 2. Имя таксона 
-# Затем методами класса biom проводит фильтрацию по заданному таксону и 
-# определение Sum_by_taxon и Quantity_by_taxon
+# Затем методами класса biom проводит фильтрацию по всем таксонам 
+# создает словарь и добавляет словарь этого файла к глобальному словарю-счетчику
 # Функция запускается в отдельных потоках
  
 def parse_biom(arr, taxon):
@@ -44,7 +44,7 @@ def parse_biom(arr, taxon):
 # чтобы не возникло конфликта между потоками
 
         with lock:
-            global Sum_by_taxon , Quantity_by_taxon, Counter_by_taxon
+            global Counter_by_taxon
             # Sum_by_taxon += table.sum(axis='whole')
             # Quantity_by_taxon  += len(table.ids(axis='observation'))
             Counter_by_taxon.update(Dict_temp)
@@ -103,13 +103,15 @@ if __name__ == "__main__":
         thread.join()
 
 
-# Вывод результата обработки
+# Вывод результата обработки в файл
 
-    print("\n\nDone!\n")
+    with open('taxon.csv', 'w', newline='') as csvfile:
 
-    # print('Taxon ', taxon ,'\nSum_by_taxon = ', Sum_by_taxon, '\nQuantity_by_taxon = ', Quantity_by_taxon)
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
-    print(Counter_by_taxon)
-    print(len(Counter_by_taxon))
+        a = [[],[]]
 
-    print("\n\n")
+        for i in Counter_by_taxon:
+            a[0] = i
+            a[1] = Counter_by_taxon[i]
+            writer.writerow(a)
