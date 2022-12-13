@@ -1,5 +1,6 @@
 import csv
 from biom import load_table
+from collections import Counter
 import threading
 import time
 import os
@@ -16,7 +17,7 @@ Q_THREADS = 4
 
 Quantity_by_taxon = 0
 Sum_by_taxon = 0
-Dictionary_by_taxon = {}
+Counter_by_taxon = Counter()
 
 # Эта функция выгружает данные из файла biom в обьект класса biom. 
 # Аргументы:
@@ -43,10 +44,10 @@ def parse_biom(arr, taxon):
 # чтобы не возникло конфликта между потоками
 
         with lock:
-            global Sum_by_taxon , Quantity_by_taxon, Dictionary_by_taxon
+            global Sum_by_taxon , Quantity_by_taxon, Counter_by_taxon
             # Sum_by_taxon += table.sum(axis='whole')
             # Quantity_by_taxon  += len(table.ids(axis='observation'))
-            Dictionary_by_taxon |= Dict_temp
+            Counter_by_taxon.update(Dict_temp)
             
 
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
 
     # print('Taxon ', taxon ,'\nSum_by_taxon = ', Sum_by_taxon, '\nQuantity_by_taxon = ', Quantity_by_taxon)
 
-    print(Dictionary_by_taxon)
-    print(len(Dictionary_by_taxon))
+    print(Counter_by_taxon)
+    print(len(Counter_by_taxon))
 
     print("\n\n")
