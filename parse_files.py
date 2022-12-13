@@ -6,15 +6,17 @@ import os
 import re
 
 # Определим таксон по умолчанию
-TARGET = "s__bacterium_Ellin7504"
+TARGET = "s__"
 
 # Количество потоков по умолчанию
 Q_THREADS = 4
 
-# Инициализируем количество упоминаний заданного таксона и суммарную плотность
+# Инициализируем количество упоминаний заданного таксона и суммарную плотность и 
+# составим словарь всех упоминаний имени этого таксона во всех файлах и его плотности
 
 Quantity_by_taxon = 0
 Sum_by_taxon = 0
+Dictionary_by_taxon = {}
 
 # Эта функция выгружает данные из файла biom в обьект класса biom. 
 # Аргументы:
@@ -25,18 +27,27 @@ Sum_by_taxon = 0
 # Функция запускается в отдельных потоках
  
 def parse_biom(arr, taxon):
+
+    Dict_temp = {}
+
     for i in arr:
         table = load_table( i )
         f_filter = lambda values, id_, md: taxon in md['taxonomy']
-        env = table.filter(f_filter, axis='observation', inplace=False)
+        table.filter(f_filter, axis='observation', inplace=True)
+
+        for i in table.ids(axis='observation'):    
+            Dict_temp[table.metadata(id = i, axis = 'observation').get('taxonomy').split(';')[-1]] = table.data(id = i, axis='observation')[0]
+
   
 # При обращении функции к общим переменным происходит блокировка, 
 # чтобы не возникло конфликта между потоками
 
         with lock:
-            global Sum_by_taxon , Quantity_by_taxon
-            Sum_by_taxon += env.sum(axis='whole')
-            Quantity_by_taxon  += len(env.ids(axis='observation'))
+            global Sum_by_taxon , Quantity_by_taxon, Dictionary_by_taxon
+            # Sum_by_taxon += table.sum(axis='whole')
+            # Quantity_by_taxon  += len(table.ids(axis='observation'))
+            Dictionary_by_taxon |= Dict_temp
+            
 
 
     return
@@ -95,6 +106,9 @@ if __name__ == "__main__":
 
     print("\n\nDone!\n")
 
-    print('Taxon ', taxon ,'\nSum_by_taxon = ', Sum_by_taxon, '\nQuantity_by_taxon = ', Quantity_by_taxon)
+    # print('Taxon ', taxon ,'\nSum_by_taxon = ', Sum_by_taxon, '\nQuantity_by_taxon = ', Quantity_by_taxon)
+
+    print(Dictionary_by_taxon)
+    print(len(Dictionary_by_taxon))
 
     print("\n\n")
