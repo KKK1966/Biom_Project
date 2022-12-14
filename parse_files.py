@@ -111,14 +111,14 @@ if __name__ == "__main__":
 
 # Вывод результата обработки в файл
 
-    with open('taxon.csv', 'w', newline='') as csvfile:
+    with open(dirname +'taxon.csv', 'w', newline='') as csvfile:
 
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
-        a = [[],[],[]]
+        arr_temp = [[],[],[]]
 
         for i in SSU_rRNA_by_taxon:
-            a[0] = i
-            a[1] = SSU_rRNA_by_taxon[i]
-            a[2] = Number_by_taxon[i]
-            writer.writerow(a)
+            arr_temp[0] = i
+            arr_temp[1] = SSU_rRNA_by_taxon[i]
+            arr_temp[2] = Number_by_taxon[i]
+            writer.writerow(arr_temp)
