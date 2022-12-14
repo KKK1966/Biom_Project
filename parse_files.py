@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
 # Вывод результата обработки в файл
 
-    with open(dirname +'taxon.csv', 'w', newline='') as csvfile:
+    with open(dirname +'/taxon.csv', 'w', newline='') as csvfile:
 
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
