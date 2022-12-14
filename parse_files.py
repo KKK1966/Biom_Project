@@ -12,12 +12,13 @@ TARGET = "s__"
 # Количество потоков по умолчанию
 Q_THREADS = 4
 
-# Инициализируем количество упоминаний заданного таксона и суммарную плотность и 
-# составим словарь-счетчик всех упоминаний различных  таксонов во всех файлах и их плотности
+# Инициализируем количество упоминаний заданного таксона и суммарную SSU rRNA и 
+# составим словарь-счетчик всех упоминаний различных  таксонов во всех файлах и их SSU rRNA
 
 # Quantity_by_taxon = 0
 # Sum_by_taxon = 0
-Counter_by_taxon = Counter()
+SSU_rRNA_by_taxon = Counter()
+Number_by_taxon = Counter()
 
 # Эта функция выгружает данные из файла biom в обьект класса biom. 
 # Аргументы:
@@ -29,27 +30,32 @@ Counter_by_taxon = Counter()
  
 def parse_biom(arr, taxon):
 
-    Dict_temp = {}
+    Dict_SSU_temp = {}
+    Number_taxon_temp = {}
+    Name_of_taxon_temp = ''
+    SSU_rRNA_by_taxon_temp = 0
 
     for i in arr:
         table = load_table( i )
         f_filter = lambda values, id_, md: taxon in md['taxonomy']
         table.filter(f_filter, axis='observation', inplace=True)
 
-        for i in table.ids(axis='observation'):    
-            Dict_temp[table.metadata(id = i, axis = 'observation').get('taxonomy').split(';')[-1]] = table.data(id = i, axis='observation')[0]
+        for i in table.ids(axis='observation'):
+            Name_of_taxon_temp = table.metadata(id = i, axis = 'observation').get('taxonomy').split(';')[-1]
+            SSU_rRNA_by_taxon_temp = table.data(id = i, axis='observation')[0]
+            Dict_SSU_temp[Name_of_taxon_temp] = SSU_rRNA_by_taxon_temp
+            Number_taxon_temp[Name_of_taxon_temp] = 1
 
   
 # При обращении функции к общим переменным происходит блокировка, 
 # чтобы не возникло конфликта между потоками
 
         with lock:
-            global Counter_by_taxon
+            global SSU_rRNA_by_taxon, Number_by_taxon
             # Sum_by_taxon += table.sum(axis='whole')
             # Quantity_by_taxon  += len(table.ids(axis='observation'))
-            Counter_by_taxon.update(Dict_temp)
-            
-
+            SSU_rRNA_by_taxon.update(Dict_SSU_temp)
+            Number_by_taxon.update(Number_taxon_temp)
 
     return
  
@@ -109,9 +115,10 @@ if __name__ == "__main__":
 
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
-        a = [[],[]]
+        a = [[],[],[]]
 
-        for i in Counter_by_taxon:
+        for i in SSU_rRNA_by_taxon:
             a[0] = i
-            a[1] = Counter_by_taxon[i]
+            a[1] = SSU_rRNA_by_taxon[i]
+            a[2] = Number_by_taxon[i]
             writer.writerow(a)
