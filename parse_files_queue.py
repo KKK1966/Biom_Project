@@ -96,12 +96,12 @@ def parse_tsv(arr,taxon):
                 # queue_collect_Number.put(Number_taxon_temp)
     return
 
-# Collector  забирает информацию из очередей и добавляет ее в соответствующие счетчики
+# Collector  забирает информацию из очереди и добавляет ее в соответствующие счетчики
 
 def collector():
 
     while True:
-        sleep(0.05)
+
         dict_temp = queue_collect_SSU.get()
         SSU_rRNA_by_taxon.update(dict_temp)
 
